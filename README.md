@@ -1,105 +1,122 @@
 # 🎬 RNN Review Analysis
 
-### IMDB Movie Review Sentiment Analysis using Recurrent Neural Networks
+### IMDB Movie Review Sentiment Analysis with Recurrent Neural Networks
 
-An end-to-end **Natural Language Processing (NLP)** project that uses a **Recurrent Neural Network (RNN)** to analyze movie reviews and predict their sentiment.
+An end-to-end Natural Language Processing (NLP) project that uses a **Simple Recurrent Neural Network (RNN)** to classify movie reviews based on sentiment. The project covers the complete workflow from text preprocessing and word encoding to sequence padding, embedding, model inference, and deployment through an interactive **Streamlit** application.
 
-The project includes model development, text preprocessing, prediction, and a deployed **Streamlit web application** for real-time sentiment analysis.
+The trained TensorFlow/Keras model is integrated into a lightweight web application where users can enter a movie review and receive a sentiment prediction together with the model's output score.
 
 ---
 
 ## 🚀 Live Demo
 
-### 👉 [Try the Live Demo](https://rnn-review-analysis-oaaljqtwwe3dymse8tkez8.streamlit.app/)
+**Try the deployed application:**
 
-[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Streamlit-red?style=for-the-badge\&logo=streamlit)](https://rnn-review-analysis-oaaljqtwwe3dymse8tkez8.streamlit.app/)
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-Streamlit-red?style=for-the-badge&logo=streamlit)](https://rnn-review-analysis-oaaljqtwwe3dymse8tkez8.streamlit.app/)
 
-Enter a movie review and get an instant sentiment prediction from the trained RNN model.
+👉 **[Open RNN Review Analysis](https://rnn-review-analysis-oaaljqtwwe3dymse8tkez8.streamlit.app/)**
 
 ---
 
-## 📌 Overview
+## 📌 Project Overview
 
-Sentiment analysis is a common NLP task used to determine the emotional tone of textual data.
+Sentiment analysis is a fundamental NLP task used to determine the emotional orientation of text. In this project, an RNN is trained on the **IMDB Movie Review Dataset** to learn patterns associated with positive and negative movie reviews.
 
-In this project, an **RNN-based deep learning model** is trained on the **IMDB Movie Review Dataset** to learn patterns associated with positive and negative movie reviews.
+The trained model is then exposed through a Streamlit interface, making it possible to perform real-time inference on user-provided reviews.
 
-The trained model is then integrated into a **Streamlit application**, allowing users to enter their own movie reviews and receive predictions through an interactive web interface.
-
-### The project covers the complete workflow:
+### End-to-End Pipeline
 
 ```text
-Movie Review
-     ↓
-Text Preprocessing
-     ↓
-Word Encoding
-     ↓
-Sequence Padding
-     ↓
-Word Embedding
-     ↓
-Recurrent Neural Network
-     ↓
-Sigmoid Output
-     ↓
-Sentiment Prediction
+                 ┌──────────────────────┐
+                 │    Movie Review      │
+                 └──────────┬───────────┘
+                            ↓
+                 ┌──────────────────────┐
+                 │ Text Preprocessing   │
+                 └──────────┬───────────┘
+                            ↓
+                 ┌──────────────────────┐
+                 │ Word Index Encoding  │
+                 └──────────┬───────────┘
+                            ↓
+                 ┌──────────────────────┐
+                 │ Sequence Padding     │
+                 │      maxlen=500      │
+                 └──────────┬───────────┘
+                            ↓
+                 ┌──────────────────────┐
+                 │   Word Embedding     │
+                 └──────────┬───────────┘
+                            ↓
+                 ┌──────────────────────┐
+                 │     Simple RNN       │
+                 └──────────┬───────────┘
+                            ↓
+                 ┌──────────────────────┐
+                 │ Sigmoid Probability  │
+                 └──────────┬───────────┘
+                            ↓
+                 ┌──────────────────────┐
+                 │ Sentiment Prediction │
+                 └──────────────────────┘
 ```
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-* 🧠 RNN-based sentiment classification
-* 🎬 IMDB movie review dataset
-* 🔤 Text preprocessing and word encoding
-* 📚 Word embedding
-* 🔢 Sequence padding
-* 🤖 Trained TensorFlow/Keras model
-* 🌐 Interactive Streamlit web application
-* 📊 Prediction score
-* 🔄 Reset functionality
-* 🚀 Live deployment on Streamlit
+- 🧠 **Simple RNN-based sentiment classification**
+- 🎬 **IMDB movie review dataset**
+- 🔤 Text-to-integer word encoding
+- 📏 Fixed-length sequence padding
+- 📚 Word embedding for dense text representation
+- 🤖 TensorFlow/Keras trained model
+- 📊 Prediction score exposed in the application
+- 🌐 Interactive Streamlit interface
+- 🔄 Reset functionality for repeated predictions
+- 🚀 Public deployment through Streamlit
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology           | Purpose                        |
-| -------------------- | ------------------------------ |
-| **Python**           | Programming language           |
-| **TensorFlow**       | Deep learning framework        |
-| **Keras**            | Neural network API             |
-| **RNN**              | Sequential text classification |
-| **IMDB Dataset**     | Sentiment analysis dataset     |
-| **NumPy**            | Numerical operations           |
-| **Streamlit**        | Web application                |
-| **Jupyter Notebook** | Model development              |
+| Technology | Role |
+|---|---|
+| **Python** | Core programming language |
+| **TensorFlow 2.15** | Deep learning framework |
+| **Keras** | Neural network/model API |
+| **Simple RNN** | Sequential text classification |
+| **IMDB Dataset** | Sentiment-analysis dataset |
+| **NumPy** | Numerical computation |
+| **Scikit-learn** | ML utilities and evaluation support |
+| **Streamlit** | Interactive web application |
+| **Jupyter Notebook** | Experimentation and model development |
+| **TensorBoard** | Training visualization/tooling |
 
 ---
 
-## 📂 Project Structure
+## 📂 Repository Structure
 
 ```text
 RNN-review-analysis/
 │
 ├── app.py
-│   └── Streamlit web application
+│   └── Streamlit inference application
+│
+├── simplernn.ipynb
+│   └── RNN model development and training workflow
 │
 ├── embedding.ipynb
 │   └── Word embedding experiments
 │
 ├── prediction.ipynb
-│   └── Model prediction and testing
-│
-├── simplernn.ipynb
-│   └── RNN model development and training
+│   └── Model loading and prediction experiments
 │
 ├── simple_rnn_imdb.h5
-│   └── Trained RNN model
+│   └── Trained TensorFlow/Keras RNN model
 │
 ├── requirements.txt
-│   └── Python dependencies
+│   └── Python project dependencies
 │
 └── README.md
     └── Project documentation
@@ -107,26 +124,26 @@ RNN-review-analysis/
 
 ---
 
-# 🧠 How It Works
+# 🧠 Model Workflow
 
-## 1. IMDB Dataset
+## 1. Dataset
 
 The project uses the **IMDB Movie Review Dataset** available through TensorFlow/Keras.
 
-The reviews are labeled according to their sentiment:
+The original task is binary sentiment classification:
 
 ```text
 0 → Negative
 1 → Positive
 ```
 
+The model learns from labeled movie reviews and predicts the sentiment of previously unseen text.
+
 ---
 
 ## 2. Text Preprocessing
 
-Raw text cannot be directly passed to a neural network.
-
-The review is first converted into a sequence of numerical word IDs.
+Neural networks cannot directly consume raw text. Each review is therefore transformed into a numerical sequence using the IMDB vocabulary.
 
 For example:
 
@@ -134,13 +151,15 @@ For example:
 "This movie was amazing"
 ```
 
-becomes something similar to:
+is converted into a sequence of integer word IDs.
 
-```text
-[15, 23, 8, 125]
-```
+Unknown words are mapped to the configured out-of-vocabulary representation.
 
-The sequence is then padded to a fixed length:
+---
+
+## 3. Sequence Padding
+
+Movie reviews can contain different numbers of words. To provide the model with a consistent input shape, each sequence is padded/truncated to a maximum length of **500 tokens**.
 
 ```python
 sequence.pad_sequences(
@@ -149,95 +168,90 @@ sequence.pad_sequences(
 )
 ```
 
-This ensures that every input has the same shape.
+This produces a fixed-size input suitable for the neural network.
 
 ---
 
-## 3. Word Embedding
+## 4. Word Embedding
 
-The numerical word representation is passed through an embedding layer.
+The integer-encoded tokens are transformed into dense vector representations through an embedding layer.
 
-The embedding layer converts word IDs into dense numerical vectors.
+Conceptually:
 
 ```text
-Word ID
+Token ID
    ↓
 Embedding Layer
    ↓
-Dense Vector Representation
+Dense Vector
+   ↓
+Semantic Representation
 ```
 
-This allows the model to learn relationships between words.
+The embedding allows the network to learn useful numerical representations of words during training.
 
 ---
 
-## 4. Recurrent Neural Network
+## 5. Recurrent Neural Network
 
-The embedded sequence is passed through an RNN.
+The embedded sequence is processed by a **Simple RNN**.
 
-RNNs are useful for sequential data because they process information while considering the order of the inputs.
+Unlike a model that treats every token independently, an RNN processes sequential information while maintaining a hidden state. This makes it suitable for learning patterns where word order contributes to meaning.
 
 ```text
-Word 1 → Word 2 → Word 3 → Word 4
-   ↓        ↓        ↓        ↓
-              RNN
-               ↓
-        Learned Representation
-               ↓
-        Classification Layer
+Word 1 → Word 2 → Word 3 → ... → Word N
+   ↓        ↓        ↓              ↓
+ ┌────────────────────────────────────┐
+ │            Simple RNN              │
+ └──────────────────┬─────────────────┘
+                    ↓
+              Classification
+                    ↓
+             Sigmoid Output
 ```
 
 ---
 
-## 5. Prediction
+## 6. Sentiment Prediction
 
-The final layer uses a sigmoid activation function and produces a score between `0` and `1`.
+The final classifier produces a sigmoid score between `0` and `1`.
 
-```text
-0.0 ───────────────────────────── 1.0
- │                                  │
-Negative                         Positive
-```
+The Streamlit application interprets the score using the following application-level thresholds:
 
-The Streamlit application interprets the score using:
+| Prediction Score | Application Output |
+|---:|---|
+| `<= 0.35` | 🔴 Negative |
+| `0.35 < score < 0.65` | 🟡 Neutral |
+| `>= 0.65` | 🟢 Positive |
 
-```text
-Score <= 0.35         → Negative
-
-0.35 < Score < 0.65  → Neutral
-
-Score >= 0.65        → Positive
-```
-
-> **Note:** The RNN itself is trained as a binary sentiment classifier. The `Neutral` category is an application-level interpretation for predictions close to the decision boundary; it is not a separately trained third class.
+> **Important:** The underlying RNN is trained as a **binary classifier** (positive vs. negative). The `Neutral` label is an application-level interpretation of predictions close to the decision boundary; it is **not a separately trained third class**.
 
 ---
 
 # 🌐 Streamlit Application
 
-The trained model is loaded by `app.py` and used to classify new movie reviews.
+The application is implemented in `app.py`.
 
-The application provides:
+It:
 
-### 📝 Review Input
+1. Loads the trained `simple_rnn_imdb.h5` model.
+2. Loads the IMDB word index.
+3. Converts user-entered text into integer sequences.
+4. Pads the sequence to 500 tokens.
+5. Runs inference with the trained RNN.
+6. Converts the output score into a sentiment label.
+7. Displays the sentiment and prediction score.
 
-Users can enter a movie review into the text area.
+### Application Controls
 
-### 🤖 Sentiment Classification
-
-The review is processed and passed to the trained RNN model.
-
-### 📊 Prediction Score
-
-The model's output score is displayed to the user.
-
-### 🔄 Reset
-
-Users can clear the input and test another review.
+- **Movie Review** — input area for a new review
+- **Classify** — runs model inference
+- **Prediction Score** — displays the model output
+- **Reset** — clears the current review
 
 ---
 
-# 🧪 Example
+# 🧪 Example Predictions
 
 ### Positive Review
 
@@ -246,13 +260,11 @@ This movie was absolutely fantastic. The acting was excellent,
 the story was engaging, and I loved every minute of it.
 ```
 
-Possible result:
+Expected application output:
 
 ```text
 Sentiment: Positive
 ```
-
----
 
 ### Negative Review
 
@@ -261,34 +273,40 @@ This movie was extremely disappointing. The story was boring,
 the acting was weak, and the ending made no sense.
 ```
 
-Possible result:
+Expected application output:
 
 ```text
 Sentiment: Negative
 ```
 
----
-
-### Mixed Review
+### Mixed / Uncertain Review
 
 ```text
 The acting was excellent and the movie looked beautiful,
-but unfortunately the story was incredibly boring and predictable.
-I enjoyed some parts, but overall I was disappointed.
+but the story was boring and predictable.
 ```
 
-A model score around `0.60` would be interpreted by the application as:
+A score around the decision boundary may be displayed as:
 
 ```text
 Sentiment: Neutral
 Prediction Score: 0.6000
 ```
 
-This demonstrates how a review containing both positive and negative signals can result in an uncertain prediction.
-
 ---
 
-# ⚙️ Installation
+# ⚙️ Installation & Setup
+
+## Prerequisites
+
+Make sure you have:
+
+- Python 3.x
+- Git
+- pip
+- A virtual environment (recommended)
+
+---
 
 ## 1. Clone the Repository
 
@@ -344,7 +362,7 @@ pip install -r requirements.txt
 
 ---
 
-# ▶️ Run the Application
+# ▶️ Run Locally
 
 Start the Streamlit application:
 
@@ -352,101 +370,95 @@ Start the Streamlit application:
 streamlit run app.py
 ```
 
-Then open:
+Streamlit will provide a local URL, typically:
 
 ```text
 http://localhost:8501
 ```
 
-in your browser.
+Open the URL in your browser, enter a movie review, and click **Classify**.
 
 ---
 
 # 📓 Notebooks
 
-## `simplernn.ipynb`
+### `simplernn.ipynb`
 
-Contains the main RNN development workflow, including:
+Contains the core model-development workflow, including:
 
-* Dataset loading
-* Data preparation
-* Model creation
-* Model training
-* Model evaluation
-* Model saving
+- Dataset loading
+- Data preparation
+- RNN architecture
+- Model training
+- Model evaluation
+- Model persistence
 
-## `embedding.ipynb`
+### `embedding.ipynb`
 
-Contains experiments and learning related to:
+Contains experiments related to:
 
-* Word embeddings
-* Text representation
-* Embedding layers
+- Token representation
+- Word embeddings
+- Embedding layers
+- Text representation
 
-## `prediction.ipynb`
+### `prediction.ipynb`
 
-Contains:
+Contains experiments for:
 
-* Loading the trained model
-* Preparing new reviews
-* Generating predictions
-* Testing model behavior
+- Loading the trained model
+- Preparing new reviews
+- Running inference
+- Testing predictions
 
 ---
 
 # 📦 Trained Model
 
-The trained model is stored in:
+The trained model is included in the repository as:
 
 ```text
 simple_rnn_imdb.h5
 ```
 
-The Streamlit application loads the model using TensorFlow/Keras:
+The Streamlit application loads it with TensorFlow/Keras:
 
 ```python
+from tensorflow.keras.models import load_model
+
 model = load_model("simple_rnn_imdb.h5")
 ```
 
----
-
-# 📈 Future Improvements
-
-Some possible improvements for this project include:
-
-* [ ] Replace Simple RNN with LSTM
-* [ ] Experiment with GRU
-* [ ] Improve text preprocessing
-* [ ] Add dropout and regularization
-* [ ] Perform hyperparameter tuning
-* [ ] Add confusion matrix
-* [ ] Add classification report
-* [ ] Add training/validation graphs
-* [ ] Integrate TensorBoard
-* [ ] Add prediction confidence visualization
-* [ ] Support batch review prediction
-* [ ] Train a dedicated three-class sentiment model
-* [ ] Improve deployment and scalability
+This allows the deployed application to perform inference without retraining the model at startup.
 
 ---
 
-# 🎯 Learning Outcomes
+# 🔍 Implementation Details
 
-This project provided practical experience with:
+The inference pipeline in `app.py` follows the same vocabulary and sequence representation used by the IMDB dataset.
 
-* Natural Language Processing
-* Text preprocessing
-* Tokenization
-* Word indexing
-* Sequence padding
-* Word embeddings
-* Recurrent Neural Networks
-* Binary classification
-* Sigmoid activation
-* TensorFlow/Keras
-* Model training and evaluation
-* Streamlit application development
-* Machine learning model deployment
+The application:
+
+```python
+word_index = imdb.get_word_index()
+```
+
+creates the IMDB vocabulary, then maps user-entered words to integer IDs before padding:
+
+```python
+padded_review = sequence.pad_sequences(
+    [encoded_review],
+    maxlen=500
+)
+```
+
+The trained model then generates the prediction:
+
+```python
+prediction = model.predict(preprocessed_input)
+```
+
+The resulting score is interpreted into an application-level sentiment category.
 
 ---
 
@@ -456,27 +468,98 @@ The application is deployed using **Streamlit**.
 
 ### Live Application
 
-👉 **[Open RNN Review Analysis](https://rnn-review-analysis-oaaljqtwwe3dymse8tkez8.streamlit.app/)**
+👉 **[https://rnn-review-analysis-oaaljqtwwe3dymse8tkez8.streamlit.app/](https://rnn-review-analysis-oaaljqtwwe3dymse8tkez8.streamlit.app/)**
+
+The deployment uses the repository's Streamlit entry point:
+
+```text
+app.py
+```
+
+and installs the dependencies listed in:
+
+```text
+requirements.txt
+```
 
 ---
 
-# 👨‍💻 Author
+# 📈 Future Improvements
 
-## Bharat Kumar
+The current implementation focuses on demonstrating an end-to-end RNN sentiment-analysis workflow. Potential improvements include:
 
-Data Science & Machine Learning Enthusiast
-
+- [ ] Replace Simple RNN with **LSTM**
+- [ ] Experiment with **GRU**
+- [ ] Add dropout and regularization
+- [ ] Perform systematic hyperparameter tuning
+- [ ] Add confusion matrix and classification report
+- [ ] Add training/validation metric visualizations
+- [ ] Integrate TensorBoard experiment tracking
+- [ ] Add confidence/probability visualization
+- [ ] Support batch prediction for multiple reviews
+- [ ] Add model versioning
+- [ ] Improve text normalization and preprocessing
+- [ ] Train a dedicated three-class sentiment model
+- [ ] Containerize the application with Docker
+- [ ] Add automated testing and CI/CD
 
 ---
 
-# ⭐ Show Your Support
+# 🎯 Learning Outcomes
 
-If you found this project useful or interesting, consider giving the repository a ⭐ on GitHub.
+This project demonstrates practical experience with:
 
-Your support is appreciated!
+- Natural Language Processing
+- Text preprocessing
+- Tokenization and vocabulary mapping
+- Sequence padding
+- Word embeddings
+- Recurrent Neural Networks
+- Binary sentiment classification
+- Sigmoid-based probability output
+- TensorFlow/Keras
+- Model training and inference
+- Streamlit application development
+- ML model deployment
+
+---
+
+# 💼 Why This Project Matters
+
+This project demonstrates more than model training alone. It connects the major components of a practical machine-learning workflow:
+
+```text
+Data
+ ↓
+Preprocessing
+ ↓
+Feature Representation
+ ↓
+Model Development
+ ↓
+Training
+ ↓
+Inference
+ ↓
+Application Integration
+ ↓
+Deployment
+```
+
+This makes the repository a compact example of taking an NLP/deep-learning model from experimentation to a usable application.
+
+---
+
+
+
+# ⭐ Support
+
+If you find this project useful, consider giving the repository a ⭐ on GitHub.
+
+Your feedback, suggestions, and contributions are welcome.
 
 ---
 
 ## 📄 License
 
-This project is developed for **educational and learning purposes**.
+This project is developed for educational and learning purposes.
