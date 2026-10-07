@@ -149,8 +149,7 @@ it never retrains. Set `RNN_DEBUG=1` to show full error traces.
 ```text
 RNN-review-analysis/
 │
-├── streamlit_app.py            # Streamlit frontend (recommended entry point)
-├── app.py                    # Streamlit app (same optimized pipeline; deployment entry point)
+├── streamlit_app.py            # Streamlit frontend
 ├── final_train.py              # Optimized SimpleRNN training script
 ├── evaluate.py                 # Test-set evaluation
 ├── predict.py                  # Single-review CLI inference
