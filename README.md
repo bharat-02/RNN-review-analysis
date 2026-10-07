@@ -155,7 +155,6 @@ RNN-review-analysis/
 ├── evaluate.py                 # Test-set evaluation
 ├── predict.py                  # Single-review CLI inference
 ├── simple_rnn_imdb_optimized.h5# Final SimpleRNN model (maxlen 300)
-├── simple_rnn_imdb.h5          # Original baseline model (reference)
 ├── loss_curves_optimized.png   # Training/validation curves
 ├── history_optimized.json      # Training history
 ├── requirements.txt            # Dependencies
