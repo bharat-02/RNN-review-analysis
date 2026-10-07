@@ -121,6 +121,8 @@ RNN-review-analysis/
 ├── final_train.py                # Optimized SimpleRNN training script
 ├── evaluate.py                   # Test-set evaluation
 ├── predict.py                    # Single-review CLI inference
+├── tests/
+│   └── test_model.py             # Automated pipeline tests
 ├── simple_rnn_imdb_optimized.h5  # Final SimpleRNN model (maxlen 300)
 ├── loss_curves_optimized.png     # Training/validation curves
 ├── history_optimized.json        # Full training history (loss, acc, lr)
@@ -182,21 +184,57 @@ words are truncated exactly as in training (the app tells you when this happens)
 
 ## Testing
 
-Run the automated suite (fresh process, no retraining involved):
+`tests/test_model.py` validates the final SimpleRNN review-analysis pipeline
+end to end in a fresh Python process (it never retrains the model). It covers:
+
+- Model loading: file exists, loads without errors, architecture is
+  SimpleRNN-only (no LSTM/GRU/Attention/Transformer), correct input/output
+  shapes, no NaN/Inf in weights
+- Word-index loading from the Keras IMDB dataset (the project's tokenizer)
+- Preprocessing parity with training (`clean_text`, `encode_review`,
+  `preprocess_text`: lowercasing, punctuation stripping, OOV id 2)
+- Sequence/padding generation: fixed `(1, 300)` model inputs
+- SimpleRNN inference on 7 review types: clearly positive, clearly negative,
+  ambiguous, very short, punctuation/mixed-case, unknown-only words, and a
+  400-word review (truncation path)
+- Positive review prediction (score > 0.5) and negative review prediction
+  (score < 0.5) on verified examples
+- Edge cases without crashing: empty string, whitespace-only, single
+  character, 2000-word input, digits/punctuation-only
+- Prediction validation: float type, finite, within [0, 1], non-empty label
+- No-retrain guard: `streamlit_app.py` contains no training calls
+
+Run the suite with:
 
 ```bash
 python tests/test_model.py
 ```
 
-It verifies model loading (SimpleRNN-only architecture, correct input/output
-shapes, finite weights), preprocessing parity with training, end-to-end
-predictions on 7 review types (positive, negative, ambiguous, short,
-punctuation/case, unknown words, 400-word truncation), edge cases (empty,
-whitespace-only, single character, 2000-word input, digits/punctuation), and a
-no-retrain guard on the Streamlit app. Latest result: **7/7 tests passed**.
+Actual results from the latest run (**7/7 passed**, exit code 0):
 
-The Streamlit app was also launched headless and verified (health check `ok`,
-main page HTTP 200, positive/negative sample predictions correct).
+```text
+Model loading               PASS
+Preprocessing               PASS
+SimpleRNN inference         PASS (7 reviews, all valid; e.g. positive 0.5726, negative 0.0189)
+Positive review test        PASS
+Negative review test        PASS
+Edge cases                  PASS
+No-retrain guard            PASS
+```
+
+Streamlit integration was verified separately: the app launched headless
+(health check `ok`, main page HTTP 200) and classified sample reviews
+correctly; empty input shows a warning instead of a stack trace.
+
+Held-out test-set metrics (`python evaluate.py`, 25,000 IMDB test reviews):
+
+| Metric | Score |
+|---|---:|
+| Test loss | 0.4175 |
+| Accuracy | 0.8282 |
+| Precision | 0.8224 |
+| Recall | 0.8373 |
+| F1 score | 0.8298 |
 
 ## Technologies Used
 
