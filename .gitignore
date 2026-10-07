@@ -1,25 +1,39 @@
-# Python
+# Python bytecode and caches
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
+.eggs/
+build/
+dist/
+
 # Virtual environments
 venv/
 .venv/
 env/
+ENV/
+
 # Jupyter
 .ipynb_checkpoints/
+
 # TensorBoard / training logs
 logs/
 runs/
+lightning_logs/
+
 # OS / editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.swp
+
 # Secrets - never commit
 .env
 *.pem
 *.key
-# Large local caches (keep repo lean)
+
+# Local temp files (keep repo lean)
 *.tmp
 *.bak
+*.log
