@@ -30,6 +30,8 @@ writing code.
 - SimpleRNN-based sentiment prediction with confidence score
 - Long-review notice (tells you when truncation kicked in)
 - One-click Reset that empties the text area and clears all results
+- Model Summary tab (live architecture, parameter counts, training config)
+- Model Evaluation tab (held-out test metrics, confusion matrix, training curves)
 - Reproducible training script with early stopping and LR scheduling
 - Test-set evaluation script (accuracy, precision, recall, F1, confusion matrix)
 - Single-review CLI inference script
@@ -127,6 +129,8 @@ RNN-review-analysis/
 │   ├── test_model.py             # Automated pipeline tests
 │   └── test_reset.py             # Scripted UI test: analyze → Reset clears all
 ├── simple_rnn_imdb_optimized.h5  # Final SimpleRNN model (maxlen 300)
+├── test_metrics.json             # Held-out test metrics + confusion matrix
+├── model_metadata.json           # Training configuration used by the app
 ├── loss_curves_optimized.png     # Training/validation curves
 ├── history_optimized.json        # Full training history (loss, acc, lr)
 ├── requirements.txt              # Dependencies

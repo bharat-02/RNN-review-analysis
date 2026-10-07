@@ -7,9 +7,15 @@ Run:
     streamlit run streamlit_app.py
 """
 
+import io
+import json
 import os
 import re
 
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 from tensorflow.keras.datasets import imdb
@@ -19,6 +25,9 @@ from tensorflow.keras.preprocessing import sequence
 MODEL_PATH = os.environ.get(
     "RNN_MODEL_PATH", "simple_rnn_imdb_optimized.h5"
 )
+METRICS_PATH = os.environ.get("RNN_METRICS_PATH", "test_metrics.json")
+META_PATH = os.environ.get("RNN_META_PATH", "model_metadata.json")
+CURVES_PATH = "loss_curves_optimized.png"
 VOCAB_SIZE = 10000
 DEBUG = os.environ.get("RNN_DEBUG", "0") == "1"
 
@@ -56,6 +65,53 @@ def preprocess_text(text: str, word_index: dict, maxlen: int):
 # ----------------------------------------------------------------------------
 # Artifacts — loaded once, never retrained
 # ----------------------------------------------------------------------------
+@st.cache_resource(show_spinner="Loading evaluation data...")
+def load_eval_data():
+    """Load saved test metrics + training metadata. Missing/corrupt files
+    return None entries so the app keeps working with a warning."""
+    metrics, meta = None, None
+    for path, slot in ((METRICS_PATH, "metrics"), (META_PATH, "meta")):
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path) as fh:
+                data = json.load(fh)
+        except Exception:  # noqa: BLE001 - corrupt file, fall back gracefully
+            continue
+        if slot == "metrics":
+            metrics = data
+        else:
+            meta = data
+    return metrics, meta
+
+
+def keras_summary_text(model) -> str:
+    """Readable Keras model.summary() captured as text (actual live model)."""
+    buf = io.StringIO()
+    model.summary(print_fn=lambda line: buf.write(line + "\n"))
+    return buf.getvalue()
+
+
+def layer_rows(model) -> list:
+    """One dict per layer: name, type, output shape, params, activation.
+
+    All values are strings so the table serializes cleanly in Streamlit.
+    """
+    rows = []
+    for layer in model.layers:
+        cfg = layer.get_config()
+        rows.append(
+            {
+                "Layer": str(layer.name),
+                "Type": str(layer.__class__.__name__),
+                "Output shape": str(layer.output_shape),
+                "Params": f"{layer.count_params():,}",
+                "Activation": str(cfg.get("activation", "—")),
+            }
+        )
+    return rows
+
+
 @st.cache_resource(show_spinner="Loading SimpleRNN model...")
 def load_artifacts():
     """Load word index + trained model. Raises RuntimeError with a short message."""
@@ -128,43 +184,124 @@ def main():
         if DEBUG:
             st.exception(exc)
         st.stop()
-    with st.expander("Model info"):
-        st.write(f"Model file: `{MODEL_PATH}`")
-        st.write(
-            "Layers: "
-            + ", ".join(l.__class__.__name__ for l in model.layers)
-        )
-        st.write(f"Sequence length: {maxlen} tokens (longer reviews are truncated)")
+    metrics, meta = load_eval_data()
 
-    review = st.text_area("Enter your review:", height=150, key="review")
+    tab_review, tab_summary, tab_eval = st.tabs(
+        ["Review Analysis", "Model Summary", "Model Evaluation"]
+    )
 
-    if st.button("Analyze Review"):
-        if not review or not review.strip():
-            st.warning("Please enter a review before analyzing.")
-            return
+    # ------------------------------------------------------ Review Analysis ---
+    with tab_review:
+        review = st.text_area("Enter your review:", height=150, key="review")
+
+        if st.button("Analyze Review"):
+            if not review or not review.strip():
+                st.warning("Please enter a review before analyzing.")
+            else:
+                try:
+                    label, score, n_words = predict_sentiment(
+                        review, word_index, model, maxlen
+                    )
+                except RuntimeError as exc:
+                    st.error(str(exc))
+                    if DEBUG:
+                        st.exception(exc)
+                else:
+                    if n_words > maxlen:
+                        st.info(
+                            f"Your review has {n_words} words; only the last "
+                            f"{maxlen} were used (same truncation as training)."
+                        )
+                    st.subheader("Prediction:")
+                    st.write(f"**{label}**")
+                    st.write(f"Confidence: {max(score, 1 - score) * 100:.2f}%")
+                    st.write(f"Raw score: {score:.4f} (threshold 0.5)")
+
+        # Reset clears the keyed text area via on_click (which runs before the
+        # script body, where widget-state edits are legal). The rerun that
+        # follows every button click then wipes the previous prediction output.
+        st.button("Reset", on_click=reset_analysis)
+
+    # -------------------------------------------------------- Model Summary ---
+    with tab_summary:
+        st.header("Model Summary")
+        rnn_layers = [l for l in model.layers if l.__class__.__name__ == "SimpleRNN"]
+        units = rnn_layers[0].get_config().get("units", "?") if rnn_layers else "?"
+        total = model.count_params()
+        trainable = int(sum(np.prod(w.shape) for w in model.trainable_weights))
+        if isinstance(model.loss, str):
+            loss = model.loss
+        else:
+            loss = getattr(model.loss, "name", None) or getattr(
+                model.loss, "__name__", "?"
+            )
         try:
-            label, score, n_words = predict_sentiment(
-                review, word_index, model, maxlen
-            )
-        except RuntimeError as exc:
-            st.error(str(exc))
-            if DEBUG:
-                st.exception(exc)
-            return
-        if n_words > maxlen:
-            st.info(
-                f"Your review has {n_words} words; only the last {maxlen} "
-                "were used (same truncation as training)."
-            )
-        st.subheader("Prediction:")
-        st.write(f"**{label}**")
-        st.write(f"Confidence: {max( score, 1 - score) * 100:.2f}%")
-        st.write(f"Raw score: {score:.4f} (threshold 0.5)")
+            lr = float(model.optimizer.learning_rate)
+            lr_text = f"{lr:g}"
+        except Exception:  # noqa: BLE001 - schedule or symbolic LR
+            lr_text = (meta or {}).get("learning_rate", "?")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Recurrent type", "SimpleRNN")
+        col2.metric("SimpleRNN units", units)
+        col3.metric("Total params", f"{total:,}")
+        col1.metric("Trainable", f"{trainable:,}")
+        col2.metric("Non-trainable", f"{total - trainable:,}")
+        col3.metric("Output", "sigmoid (P=positive)")
+        st.subheader("Layers")
+        st.dataframe(layer_rows(model), width="stretch")
+        st.subheader("Training configuration")
+        opt_name = model.optimizer.__class__.__name__
+        train_cfg = {
+            "Optimizer": opt_name,
+            "Learning rate": lr_text,
+            "Loss": loss,
+            "Batch size": (meta or {}).get("batch_size", "?"),
+            "Epochs run / max": (
+                f"{(meta or {}).get('epochs_ran', '?')} / "
+                f"{(meta or {}).get('max_epochs', '?')} "
+                f"(best: {(meta or {}).get('best_epoch', '?')})"
+            ),
+            "Early stopping": str((meta or {}).get("early_stopping", "?")),
+            "LR schedule": str((meta or {}).get("lr_schedule", "?")),
+        }
+        st.table({k: str(v) for k, v in train_cfg.items()})
+        with st.expander("Keras model.summary()"):
+            st.code(keras_summary_text(model))
 
-    # Reset clears the keyed text area via on_click (which runs before the
-    # script body, where widget-state edits are legal). The rerun that follows
-    # every button click then wipes the previous prediction/confidence output.
-    st.button("Reset", on_click=reset_analysis)
+    # ------------------------------------------------------ Model Evaluation --
+    with tab_eval:
+        st.header("Model Evaluation")
+        if not metrics:
+            st.warning(
+                f"Evaluation file '{METRICS_PATH}' is missing or unreadable, "
+                "so test metrics cannot be shown. The review classifier above "
+                "still works."
+            )
+        else:
+            st.write(f"Held-out IMDB test set: {metrics.get('n_test', '?')} reviews")
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Test loss", metrics["test_loss"])
+            m2.metric("Test accuracy", metrics["test_accuracy"])
+            m3.metric("F1 score", metrics["f1"])
+            m1.metric("Precision", metrics["precision"])
+            m2.metric("Recall", metrics["recall"])
+            cm = np.array(metrics["confusion_matrix"])
+            fig, ax = plt.subplots()
+            ax.matshow(cm)
+            for (i, j), v in np.ndenumerate(cm):
+                ax.text(j, i, f"{v:,}", ha="center", va="center")
+            ax.set_xlabel("Predicted (neg, pos)")
+            ax.set_ylabel("Actual (neg, pos)")
+            ax.set_title("Confusion matrix (test set)")
+            st.pyplot(fig)
+            dist = cm.sum(axis=1)
+            fig2, ax2 = plt.subplots()
+            ax2.bar(["Negative", "Positive"], dist)
+            ax2.set_title("Test-set class distribution")
+            st.pyplot(fig2)
+        if os.path.exists(CURVES_PATH):
+            st.subheader("Training curves")
+            st.image(CURVES_PATH, caption="Training vs validation loss/accuracy")
 
 
 if __name__ == "__main__":

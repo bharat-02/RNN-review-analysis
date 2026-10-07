@@ -13,19 +13,22 @@ from streamlit.testing.v1 import AppTest
 
 
 def main():
-    at = AppTest.from_file("streamlit_app.py", default_timeout=120).run()
+    at = AppTest.from_file("streamlit_app.py", default_timeout=180).run()
     assert not at.exception, f"startup errors: {at.exception}"
-    assert at.text_area[0].value == "", "text area not empty on launch"
+    tab = at.tabs[0]
+    assert tab.label == "Review Analysis", tab.label
+    assert tab.text_area[0].value == "", "text area not empty on launch"
 
     # 1-2. enter a review and analyze
-    at.text_area[0].set_value(
+    tab.text_area[0].set_value(
         "This movie was fantastic! The acting was great."
     ).run()
-    assert at.text_area[0].value.startswith("This movie"), "typing failed"
-    analyze = next(b for b in at.button if b.label == "Analyze Review")
+    assert tab.text_area[0].value.startswith("This movie"), "typing failed"
+    analyze = next(b for b in tab.button if b.label == "Analyze Review")
     analyze.click().run()
+    tab = at.tabs[0]
     assert not at.exception, f"errors after Analyze: {at.exception}"
-    shown = [s.value for s in at.subheader] + [m.value for m in at.markdown]
+    shown = [s.value for s in tab.subheader] + [m.value for m in tab.markdown]
     assert any("Prediction" in s for s in shown), "prediction missing"
     import re
 
@@ -38,17 +41,31 @@ def main():
     print("analyze shows prediction: PASS")
 
     # 3. reset and verify everything is cleared
-    reset = next(b for b in at.button if b.label == "Reset")
+    reset = next(b for b in tab.button if b.label == "Reset")
     reset.click().run()
+    tab = at.tabs[0]
     assert not at.exception, f"errors after Reset: {at.exception}"
-    assert at.text_area[0].value == "", (
-        f"text area not cleared: {at.text_area[0].value!r}"
+    assert tab.text_area[0].value == "", (
+        f"text area not cleared: {tab.text_area[0].value!r}"
     )
-    leftovers = [s.value for s in at.subheader] + [
-        m.value for m in at.markdown if "Prediction" in m.value or "Confidence" in m.value
+    leftovers = [s.value for s in tab.subheader] + [
+        m.value for m in tab.markdown if "Prediction" in m.value or "Confidence" in m.value
     ]
     assert not leftovers, f"results not cleared: {leftovers}"
     print("reset clears text + results: PASS")
+
+    # 4. summary + evaluation tabs render real data
+    for i, want in ((1, "Model Summary"), (2, "Model Evaluation")):
+        assert at.tabs[i].label == want, at.tabs[i].label
+    summary_vals = [m.value for m in at.tabs[1].metric]
+    assert "SimpleRNN" in summary_vals, (
+        f"summary missing model info: {summary_vals}"
+    )
+    eval_vals = [m.value for m in at.tabs[2].metric]
+    assert "0.8282" in eval_vals and "0.8298" in eval_vals, (
+        f"evaluation metrics missing: {eval_vals}"
+    )
+    print("summary + evaluation tabs show real data: PASS")
     print("Reset-button test: PASS")
 
 
