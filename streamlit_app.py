@@ -101,6 +101,16 @@ def predict_sentiment(text: str, word_index, model, maxlen: int):
 
 
 # ----------------------------------------------------------------------------
+# UI state
+# ----------------------------------------------------------------------------
+def reset_analysis():
+    """Clear the review widget (runs before the script body, so the widget
+    state can be modified legally). Streamlit reruns automatically after
+    any button click, returning the app to its initial state."""
+    st.session_state.review = ""
+
+
+# ----------------------------------------------------------------------------
 # UI
 # ----------------------------------------------------------------------------
 def main():
@@ -126,7 +136,7 @@ def main():
         )
         st.write(f"Sequence length: {maxlen} tokens (longer reviews are truncated)")
 
-    review = st.text_area("Enter your review:", height=150)
+    review = st.text_area("Enter your review:", height=150, key="review")
 
     if st.button("Analyze Review"):
         if not review or not review.strip():
@@ -151,8 +161,10 @@ def main():
         st.write(f"Confidence: {max( score, 1 - score) * 100:.2f}%")
         st.write(f"Raw score: {score:.4f} (threshold 0.5)")
 
-    if st.button("Reset"):
-        st.rerun()
+    # Reset clears the keyed text area via on_click (which runs before the
+    # script body, where widget-state edits are legal). The rerun that follows
+    # every button click then wipes the previous prediction/confidence output.
+    st.button("Reset", on_click=reset_analysis)
 
 
 if __name__ == "__main__":

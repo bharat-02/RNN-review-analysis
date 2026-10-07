@@ -29,6 +29,7 @@ writing code.
 - Fixed-length sequence generation (padded / truncated to 300 tokens)
 - SimpleRNN-based sentiment prediction with confidence score
 - Long-review notice (tells you when truncation kicked in)
+- One-click Reset that empties the text area and clears all results
 - Reproducible training script with early stopping and LR scheduling
 - Test-set evaluation script (accuracy, precision, recall, F1, confusion matrix)
 - Single-review CLI inference script
@@ -123,7 +124,8 @@ RNN-review-analysis/
 ├── evaluate.py                   # Test-set evaluation
 ├── predict.py                    # Single-review CLI inference
 ├── tests/
-│   └── test_model.py             # Automated pipeline tests
+│   ├── test_model.py             # Automated pipeline tests
+│   └── test_reset.py             # Scripted UI test: analyze → Reset clears all
 ├── simple_rnn_imdb_optimized.h5  # Final SimpleRNN model (maxlen 300)
 ├── loss_curves_optimized.png     # Training/validation curves
 ├── history_optimized.json        # Full training history (loss, acc, lr)
@@ -210,7 +212,12 @@ Run the suite with:
 
 ```bash
 python tests/test_model.py
+python tests/test_reset.py
 ```
+
+`test_reset.py` drives the real UI headlessly: it types a review, clicks
+**Analyze Review**, confirms the prediction appears, clicks **Reset**, and
+confirms the text area is empty and all results are gone.
 
 Actual results from the latest run (**7/7 passed**, exit code 0):
 
