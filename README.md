@@ -4,6 +4,8 @@
 ![TensorFlow 2.15](https://img.shields.io/badge/tensorflow-2.15-orange)
 ![Streamlit](https://img.shields.io/badge/streamlit-app-red)
 
+**[🚀 Live Demo](https://rnn-review-analysis-izvpnoxbvhzu9sepvyyzmr.streamlit.app/)** — try the deployed Streamlit app in your browser, no installation needed.
+
 Sentiment analysis of IMDB movie reviews with a **SimpleRNN** neural network.
 Type a review into the Streamlit app and get an instant
 positive / negative prediction with a confidence score.
@@ -137,6 +139,14 @@ RNN-review-analysis/
 ├── README.md                     # This file
 └── .gitignore
 ```
+
+## Live Demo
+
+A working deployment of the Streamlit app is available here:
+
+**[🚀 Live Demo](https://rnn-review-analysis-izvpnoxbvhzu9sepvyyzmr.streamlit.app/)**
+
+Open it, type a movie review, and click **Analyze Review** — no installation needed.
 
 ## Installation
 
