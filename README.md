@@ -101,10 +101,23 @@ The trained model is then exposed through a Streamlit interface, making it possi
 RNN-review-analysis/
 │
 ├── app.py
-│   └── Streamlit inference application
+│   └── Streamlit inference application (uses optimized SimpleRNN model)
+│
+├── app.1.py
+│   └── Streamlit inference application copy (same optimized pipeline)
+│
+├── final_train.py
+│   └── Optimized SimpleRNN training pipeline (tanh, dropout,
+│       gradient clipping, ReduceLROnPlateau, early stopping)
+│
+├── evaluate.py
+│   └── Test-set evaluation (accuracy, precision, recall, F1, confusion matrix)
+│
+├── predict.py
+│   └── Single-review CLI inference
 │
 ├── simplernn.ipynb
-│   └── RNN model development and training workflow
+│   └── Original RNN model development and training workflow
 │
 ├── embedding.ipynb
 │   └── Word embedding experiments
@@ -112,8 +125,17 @@ RNN-review-analysis/
 ├── prediction.ipynb
 │   └── Model loading and prediction experiments
 │
+├── simple_rnn_imdb_optimized.h5
+│   └── Optimized SimpleRNN model (SimpleRNN-only, maxlen=300)
+│
 ├── simple_rnn_imdb.h5
-│   └── Trained TensorFlow/Keras RNN model
+│   └── Original baseline RNN model (kept for reference)
+│
+├── loss_curves_optimized.png
+│   └── Training/validation loss and accuracy curves
+│
+├── history_optimized.json
+│   └── Training history of the optimized model
 │
 ├── requirements.txt
 │   └── Python project dependencies
@@ -159,12 +181,12 @@ Unknown words are mapped to the configured out-of-vocabulary representation.
 
 ## 3. Sequence Padding
 
-Movie reviews can contain different numbers of words. To provide the model with a consistent input shape, each sequence is padded/truncated to a maximum length of **500 tokens**.
+Movie reviews can contain different numbers of words. To provide the model with a consistent input shape, each sequence is padded/truncated to a maximum length of **300 tokens** (optimized; the original baseline used 500).
 
 ```python
 sequence.pad_sequences(
     [encoded_review],
-    maxlen=500
+    maxlen=300
 )
 ```
 
@@ -234,10 +256,11 @@ The application is implemented in `app.py`.
 
 It:
 
-1. Loads the trained `simple_rnn_imdb.h5` model.
+1. Loads the optimized `simple_rnn_imdb_optimized.h5` model.
 2. Loads the IMDB word index.
-3. Converts user-entered text into integer sequences.
-4. Pads the sequence to 500 tokens.
+3. Converts user-entered text into integer sequences (punctuation stripped;
+   unknown words map to OOV id 2).
+4. Pads the sequence to 300 tokens.
 5. Runs inference with the trained RNN.
 6. Converts the output score into a sentiment label.
 7. Displays the sentiment and prediction score.
@@ -248,6 +271,56 @@ It:
 - **Classify** — runs model inference
 - **Prediction Score** — displays the model output
 - **Reset** — clears the current review
+
+---
+
+# 📈 Optimized SimpleRNN (SimpleRNN-only)
+
+The recurrent core was kept as **SimpleRNN** throughout. No LSTM, GRU,
+Bidirectional, Transformer, or Attention layers were introduced.
+
+## Optimized architecture
+
+```text
+Input(300)
+ ↓
+Embedding(10000, 128)
+ ↓
+SimpleRNN(128, activation='tanh', dropout=0.2)
+ ↓
+Dropout(0.3)
+ ↓
+Dense(64, relu)
+ ↓
+Dropout(0.3)
+ ↓
+Dense(1, sigmoid)
+```
+
+Parameters: 1,321,217. Loss: `binary_crossentropy`.
+Optimizer: Adam `lr=1e-3` with `clipnorm=1.0`,
+`ReduceLROnPlateau(factor=0.5, patience=2)`,
+`EarlyStopping(patience=5, restore_best_weights=True)`, batch size 64.
+
+Key fixes vs. the baseline (`SimpleRNN(128, relu)`, maxlen 500, no regularization):
+`tanh` instead of `relu` (the baseline's epoch-1 loss exploded to ~2.3e11),
+shorter maxlen 300, dropout, gradient clipping, and LR scheduling.
+Heavy `recurrent_dropout` (0.1–0.2) was tested and rejected — it stalled
+SimpleRNN training near 50% accuracy.
+
+## Measured performance (test set, 25,000 reviews)
+
+| Metric | Before (baseline) | After (optimized) |
+|---|---:|---:|
+| Test Loss | 0.4636 | 0.4175 |
+| Test Accuracy | 0.7989 | 0.8282 |
+| Test Precision | 0.8098 | 0.8224 |
+| Test Recall | 0.7813 | 0.8373 |
+| Test F1 | 0.7953 | 0.8298 |
+| Val Accuracy | 0.8112 | 0.8294 |
+
+Training: CPU (TensorFlow 2.15 Windows build is CPU-only), ~15 s/epoch,
+~3 min total. See `loss_curves_optimized.png` and `history_optimized.json`.
 
 ---
 
@@ -378,6 +451,24 @@ http://localhost:8501
 
 Open the URL in your browser, enter a movie review, and click **Classify**.
 
+## Train the optimized model
+
+```bash
+python final_train.py
+```
+
+## Evaluate on the test set
+
+```bash
+python evaluate.py
+```
+
+## Predict a single review
+
+```bash
+python predict.py "This movie was fantastic! The acting was great."
+```
+
 ---
 
 # 📓 Notebooks
@@ -413,12 +504,12 @@ Contains experiments for:
 
 ---
 
-# 📦 Trained Model
+# 📦 Trained Models
 
-The trained model is included in the repository as:
+The optimized model is included in the repository as:
 
 ```text
-simple_rnn_imdb.h5
+simple_rnn_imdb_optimized.h5
 ```
 
 The Streamlit application loads it with TensorFlow/Keras:
@@ -426,10 +517,13 @@ The Streamlit application loads it with TensorFlow/Keras:
 ```python
 from tensorflow.keras.models import load_model
 
-model = load_model("simple_rnn_imdb.h5")
+model = load_model("simple_rnn_imdb_optimized.h5")
 ```
 
 This allows the deployed application to perform inference without retraining the model at startup.
+
+The original baseline (`simple_rnn_imdb.h5`, `SimpleRNN(128, relu)`,
+maxlen 500) is kept in the repository for reference.
 
 ---
 
@@ -448,7 +542,7 @@ creates the IMDB vocabulary, then maps user-entered words to integer IDs before 
 ```python
 padded_review = sequence.pad_sequences(
     [encoded_review],
-    maxlen=500
+    maxlen=300
 )
 ```
 
@@ -486,12 +580,11 @@ requirements.txt
 
 # 📈 Future Improvements
 
-The current implementation focuses on demonstrating an end-to-end RNN sentiment-analysis workflow. Potential improvements include:
+The current implementation focuses on demonstrating an end-to-end SimpleRNN sentiment-analysis workflow. This project intentionally stays **SimpleRNN-only**. Potential improvements include:
 
-- [ ] Replace Simple RNN with **LSTM**
-- [ ] Experiment with **GRU**
-- [ ] Add dropout and regularization
-- [ ] Perform systematic hyperparameter tuning
+- [ ] Tune SimpleRNN width/depth and sequence length further
+- [ ] Tune dropout and weight decay around the current configuration
+- [ ] Try alternate LR schedules (cosine decay) with the same SimpleRNN core
 - [ ] Add confusion matrix and classification report
 - [ ] Add training/validation metric visualizations
 - [ ] Integrate TensorBoard experiment tracking

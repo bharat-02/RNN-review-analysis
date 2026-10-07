@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+# Virtual environments
+venv/
+.venv/
+env/
+# Jupyter
+.ipynb_checkpoints/
+# TensorBoard / training logs
+logs/
+runs/
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+# Secrets - never commit
+.env
+*.pem
+*.key
+# Large local caches (keep repo lean)
+*.tmp
+*.bak
