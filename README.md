@@ -276,6 +276,3 @@ Held-out test-set metrics (`python evaluate.py`, 25,000 IMDB test reviews):
 - Improve text normalization (e.g. contraction handling)
 - Add automated tests and CI
 
-## Author
-
-[bharat-02](https://github.com/bharat-02)
