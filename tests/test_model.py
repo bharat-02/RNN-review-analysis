@@ -64,6 +64,9 @@ def t_preprocessing():
     ]
     assert app.clean_text("  ") == []
     assert app.encode_review(["great", "nosuchword_xyz"], {"great": 10}) == [13, 2]
+    # rare words outside the top-10000 vocabulary must map to OOV (2),
+    # otherwise the id falls outside the embedding matrix and crashes
+    assert app.encode_review(["wouldnt"], {"wouldnt": 20107}) == [2]
     padded, n = app.preprocess_text("Hello WORLD!", {"hello": 5, "world": 7}, 300)
     assert padded.shape == (1, 300), padded.shape
     assert n == 2
@@ -80,6 +83,7 @@ REVIEWS = {
     "punctuation/case": "AMAZING!!! ...Was it though??? WORST. EVER.",
     "unknown words": "xyzblorp qwertastic zzzfnord",
     "long": " ".join(["good"] * 400),
+    "rare-vocabulary": "not exactly a bad movie, but I wouldn't say it was particularly good either. Some parts were great, while others made me wonder why I was still watching.",
 }
 
 
@@ -130,7 +134,7 @@ def t_no_retrain_guard():
 if __name__ == "__main__":
     check("Model loading", t_model_loading)
     check("Preprocessing", t_preprocessing)
-    check("SimpleRNN inference (7 reviews)", t_reviews_valid)
+    check("SimpleRNN inference (8 reviews)", t_reviews_valid)
     check("Positive review test", t_positive_direction)
     check("Negative review test", t_negative_direction)
     check("Edge cases", t_edge_cases)

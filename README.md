@@ -69,7 +69,8 @@ Raw review
  ↓
 Lowercase + punctuation removal
  ↓
-Word → ID (known word: index + 3, unknown word: 2 = OOV)
+Word → ID (known word: index + 3; unknown word or word outside the top-10,000
+vocabulary: 2 = OOV, mirroring `imdb.load_data(num_words=10000)`)
  ↓
 Pre-pad / pre-truncate to 300 tokens
  ↓
@@ -194,9 +195,10 @@ end to end in a fresh Python process (it never retrains the model). It covers:
 - Preprocessing parity with training (`clean_text`, `encode_review`,
   `preprocess_text`: lowercasing, punctuation stripping, OOV id 2)
 - Sequence/padding generation: fixed `(1, 300)` model inputs
-- SimpleRNN inference on 7 review types: clearly positive, clearly negative,
-  ambiguous, very short, punctuation/mixed-case, unknown-only words, and a
-  400-word review (truncation path)
+- SimpleRNN inference on 8 review types: clearly positive, clearly negative,
+  ambiguous, very short, punctuation/mixed-case, unknown-only words, a
+  400-word review (truncation path), and a rare-vocabulary review (words
+  outside the top-10,000 map to OOV instead of crashing the embedding)
 - Positive review prediction (score > 0.5) and negative review prediction
   (score < 0.5) on verified examples
 - Edge cases without crashing: empty string, whitespace-only, single
@@ -215,7 +217,7 @@ Actual results from the latest run (**7/7 passed**, exit code 0):
 ```text
 Model loading               PASS
 Preprocessing               PASS
-SimpleRNN inference         PASS (7 reviews, all valid; e.g. positive 0.5726, negative 0.0189)
+SimpleRNN inference         PASS (8 reviews, all valid; e.g. positive 0.5726, negative 0.0189)
 Positive review test        PASS
 Negative review test        PASS
 Edge cases                  PASS

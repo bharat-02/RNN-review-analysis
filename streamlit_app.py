@@ -31,9 +31,19 @@ def clean_text(text: str) -> list:
     return re.sub(r"[^a-z0-9 ]", " ", text.lower()).split()
 
 
-def encode_review(words: list, word_index: dict) -> list:
-    """Map words to IMDB ids. Known word -> index+3, unknown -> 2 (OOV)."""
-    return [word_index[w] + 3 if w in word_index else 2 for w in words]
+def encode_review(words: list, word_index: dict, vocab_size: int = VOCAB_SIZE) -> list:
+    """Map words to IMDB ids. Known word -> index+3, unknown -> 2 (OOV).
+
+    Words outside the top-``vocab_size`` vocabulary also map to 2, exactly
+    like ``imdb.load_data(num_words=...)`` does during training — otherwise
+    the id would fall outside the embedding matrix and crash inference.
+    """
+    return [
+        word_index[w] + 3
+        if (w in word_index and word_index[w] + 3 < vocab_size)
+        else 2
+        for w in words
+    ]
 
 
 def preprocess_text(text: str, word_index: dict, maxlen: int):
