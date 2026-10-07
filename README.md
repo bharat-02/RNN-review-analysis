@@ -180,6 +180,24 @@ as *Uncertain (near decision boundary)* since the underlying model is a binary
 classifier. Empty input is rejected with a warning, and reviews longer than 300
 words are truncated exactly as in training (the app tells you when this happens).
 
+## Testing
+
+Run the automated suite (fresh process, no retraining involved):
+
+```bash
+python tests/test_model.py
+```
+
+It verifies model loading (SimpleRNN-only architecture, correct input/output
+shapes, finite weights), preprocessing parity with training, end-to-end
+predictions on 7 review types (positive, negative, ambiguous, short,
+punctuation/case, unknown words, 400-word truncation), edge cases (empty,
+whitespace-only, single character, 2000-word input, digits/punctuation), and a
+no-retrain guard on the Streamlit app. Latest result: **7/7 tests passed**.
+
+The Streamlit app was also launched headless and verified (health check `ok`,
+main page HTTP 200, positive/negative sample predictions correct).
+
 ## Technologies Used
 
 - Python 3.11
